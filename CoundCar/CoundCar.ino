@@ -8,7 +8,7 @@
   #define echoPin2 A3
   
   #define LED 13
-  #define RANG 20
+  #define RANG 30
   #define DELAYTIME 1000
   
   LiquidCrystal_I2C lcd(0x27,16,2);  
@@ -17,7 +17,7 @@
   long duration1, distance1;
   long duration2, distance2;
   
-  int cound=20, car=0, i=0;
+  int cound=2, car=0, i=0, m=0;
   
   void setup()
   {
@@ -33,127 +33,44 @@
     pinMode(echoPin2, INPUT);
     
     pinMode(LED, OUTPUT);
-    servo.write(0);   
+    servo.write(15);   
     delay(DELAYTIME);
   }
   
   void loop()
   {
-    
-    check1();
-    check2();
-    /************************* Car IN ****************************/
-    if(distance1 <= RANG)
-    {
-      cound--;
-      i=1;  
-    }
-    while(i == 1)
-    {
-      check1();
-      check2();
-      servo.write(90);
-      
-      lcd.home();
-      lcd.print("Max Car :");
-      lcd.print(" 20 ");
-      lcd.setCursor(0,1);
-      lcd.print("Car : ");
-      lcd.print(cound);
-      lcd.print("     ");
-      
-      if(distance1 > RANG && distance2 > RANG)
-      {   
-        lcd.setCursor(10,1);
-        lcd.print("IN ");
-        delay(DELAYTIME);
-        servo.write(15);
-        i=0;  
-      }
-    }
-    /***************************************************************/
-    /************************* Car Out ****************************/
-    if(distance2 <= RANG)
-    {
-      cound++;
-      i=2;   
-    }
-    while(i == 2)
-    {
-      check1();
-      check2();
-      servo.write(90);
-      
-      lcd.home();
-      lcd.print("Max Car :");
-      lcd.print(" 20 ");
-      lcd.setCursor(0,1);
-      lcd.print("Car : ");
-      lcd.print(cound);
-      lcd.print("     ");
-      
-      if(distance1 > RANG && distance2 > RANG)
-      {
-        lcd.setCursor(10,1);
-        lcd.print("OUT");
-        delay(DELAYTIME);
-        servo.write(15); 
-        i=0;   
-      }
-    }    
-    /***************************************************************/
-    /***********************  Check Car Full  **********************/
-    if(cound <=0)    
-    {
-      digitalWrite(LED, HIGH);
-      i=1;
-    }
-    while(i==1)
-    {
-      lcd.setCursor(0,1);
-      lcd.print("Car : ");
-      lcd.print(" FULL ");
-      
-      check2();  
-      if(distance2 <= RANG)
-      {
-        cound++;
-        i=2;   
-      }
-      while(i == 2)
-      {
-        check1();
-        check2();
-        servo.write(90);
         
-        lcd.home();
-        lcd.print("Max Car :");
-        lcd.print(" 20 ");
-        lcd.setCursor(0,1);
-        lcd.print("Car : ");
-        lcd.print(cound);
-        lcd.print("     ");
-      
-      if(distance1 > RANG && distance2 > RANG)
-      {
-        lcd.setCursor(10,1);
-        lcd.print("OUT ");
-        digitalWrite(LED, LOW);
-        delay(DELAYTIME);
-        servo.write(15); 
-        i=0;   
-      }
-      }
-    }
-    /***************************************************************/
-    
     lcd.home();
     lcd.print("Max Car :");
     lcd.print(" 20 ");
     lcd.setCursor(0,1);
     lcd.print("Car : ");
     lcd.print(cound);
-    lcd.print("     ");
+    lcd.print("      ");
+    
+    checkin();
+    checkout();
+    
+    /***********************  Check Car Full  **********************/
+    if(cound <=0)    
+    {
+      digitalWrite(LED, HIGH);
+      m=1;
+    }
+      while(m==1)
+      {
+        lcd.setCursor(0,1);
+        lcd.print("Car : ");
+        lcd.print(" FULL  ");
+        checkout();
+      }
+      
+    if(cound == 1)
+    {
+      checkin();
+    }
+    /***************************************************************/
+
   }
   
   void check1()
@@ -178,4 +95,132 @@
     
     duration2 = pulseIn(echoPin2, HIGH);
     distance2 = (duration2/2) / 29.1;
+  }
+  
+  /********  Check Car OUT ************************/
+  void checkout()
+  {
+    check1();
+    check2();
+    if(distance1 >= RANG && distance2 <= RANG)
+    {
+      i=1;  
+    }
+    while(i == 1)
+    {
+      check1();
+      check2();
+      servo.write(90);
+      
+      if(distance2 >= RANG)
+      {
+        servo.write(15);
+        delay(500);
+        i=0;
+      }
+      if(distance1 <= RANG && distance2 <= RANG)
+      {
+        i=2;
+      }
+    }
+    while(i == 2)
+    {
+      check1();
+      check2();
+      if(distance1 >= RANG && distance2 >= RANG)
+      {
+        servo.write(15);
+        delay(500);
+        i=0;
+      }
+      if(distance1 <= RANG && distance2 >= RANG)
+      {
+        i=3;
+      }
+    }
+    while(i == 3)
+    {
+      check1();
+      check2();
+      if(distance1 >= RANG && distance2 >= RANG)
+      {
+        cound++;
+        lcd.home();
+        lcd.print("Max Car :");
+        lcd.print(" 20 ");
+        lcd.setCursor(0,1);
+        lcd.print("Car : ");
+        lcd.print(cound);
+        lcd.print("     ");
+        lcd.setCursor(10,1);
+        lcd.print("OUT  ");
+        delay(DELAYTIME);
+        servo.write(15);
+        i=0;m=0;
+      }
+    }
+  }
+  
+  /********  Check Car Enter ************************/
+  void checkin()
+  {
+    check1();
+    check2();
+    if(distance1 <= RANG && distance2 >= RANG)
+    {
+      i=1;  
+    }
+    while(i == 1)
+    {
+      check1();
+      check2();
+      servo.write(90);
+      
+      if(distance1 >= RANG)
+      {
+        servo.write(15);
+        delay(500);
+        i=0;
+      }
+      if(distance1 <= RANG && distance2 <= RANG)
+      {
+        i=2;
+      }
+    }
+    while(i == 2)
+    {
+      check1();
+      check2();
+      if(distance1 >= RANG && distance2 >= RANG)
+      {
+        servo.write(15);
+        delay(500);
+        i=0;
+      }
+      if(distance1 >= RANG && distance2 <= RANG)
+      {
+        i=3;
+      }
+    }
+    while(i == 3)
+    {
+      check1();
+      check2();
+      if(distance1 >= RANG && distance2 >= RANG)
+      {
+        cound--;
+        lcd.home();
+        lcd.print("Max Car :");
+        lcd.print(" 20 ");
+        lcd.setCursor(0,1);
+        lcd.print("Car : ");
+        lcd.print(cound);
+        lcd.print("     ");
+        lcd.setCursor(10,1);
+        lcd.print("IN  ");
+        delay(DELAYTIME);
+        servo.write(15);
+        i=0; m=0;
+      }
+    } 
   }
