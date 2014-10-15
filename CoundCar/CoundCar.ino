@@ -8,7 +8,7 @@
   #define echoPin2 A3
   
   #define LED 13
-  #define RANG 30
+  #define RANG 40
   #define DELAYTIME 1000
   
   LiquidCrystal_I2C lcd(0x27,16,2);  
@@ -17,7 +17,7 @@
   long duration1, distance1;
   long duration2, distance2;
   
-  int cound=2, car=0, i=0, m=0;
+  int cound=20, car=0, i=0, m=0;
   
   void setup()
   {
